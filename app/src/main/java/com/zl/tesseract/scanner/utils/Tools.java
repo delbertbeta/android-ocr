@@ -172,7 +172,7 @@ public class Tools {
 
     private static Pattern pattern = Pattern.compile("<em>(.*?)</em>");
 
-    public static String getTelNum(String sParam){
+    public static String getRecognizedText(String sParam){
         if(TextUtils.isEmpty(sParam)){
             return "";
         }

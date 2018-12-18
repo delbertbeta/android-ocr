@@ -53,14 +53,18 @@ public final class CaptureActivityHandler extends Handler {
                 }
                 break;
             case R.id.decode_succeeded:
+                CameraManager.get().stopPreview();
                 Log.e(TAG, "Got decode succeeded message");
                 mState = State.SUCCESS;
                 mActivity.handleDecode((Result) message.obj);
                 break;
             case R.id.decode_failed:
+                CameraManager.get().stopPreview();
+                mState = State.SUCCESS;
+                mActivity.handleDecode((Result) message.obj);
                 // We're decoding as fast as possible, so when one decode fails, start another.
-                mState = State.PREVIEW;
-                CameraManager.get().requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
+//                mState = State.PREVIEW;
+//                CameraManager.get().requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
                 break;
         }
     }
@@ -85,9 +89,13 @@ public final class CaptureActivityHandler extends Handler {
         if (mState != State.PREVIEW) {
             CameraManager.get().startPreview();
             mState = State.PREVIEW;
-            CameraManager.get().requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
+//            CameraManager.get().requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
             CameraManager.get().requestAutoFocus(this, R.id.auto_focus);
         }
+    }
+
+    public void takeOnePick() {
+        CameraManager.get().requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
     }
 
     private enum State {

@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,11 +38,13 @@ import com.zl.tesseract.scanner.view.ImageDialog;
 import com.zl.tesseract.scanner.view.ScannerFinderView;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 二维码扫描类。
  */
-public class ScannerActivity extends Activity implements Callback, Camera.PictureCallback, Camera.ShutterCallback{
+public class ScannerActivity extends Activity implements Callback, Camera.PictureCallback, Camera.ShutterCallback {
 
     private CaptureActivityHandler mCaptureActivityHandler;
     private boolean mHasSurface;
@@ -55,6 +58,7 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
 
     private ProgressDialog progressDialog;
     private Bitmap bmp;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -76,10 +80,12 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
             @Override
             public void onClick(View v) {
                 bt.setEnabled(false);
-                buildProgressDialog();
-                CameraManager.get().takeShot(ScannerActivity.this, ScannerActivity.this, ScannerActivity.this);
+//                buildProgressDialog();
+//                CameraManager.get().takeShot(ScannerActivity.this, ScannerActivity.this, ScannerActivity.this);
+                mCaptureActivityHandler.takeOnePick();
             }
         });
+
 
         Switch switch2 = (Switch) findViewById(R.id.switch2);
         switch2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -201,7 +207,8 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -221,14 +228,14 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
     }
 
     private void handleResult(Result result) {
-        if (TextUtils.isEmpty(result.getText())) {
-            mDecodeManager.showCouldNotReadQrCodeFromScanner(this, new DecodeManager.OnRefreshCameraListener() {
-                @Override
-                public void refresh() {
-                    restartPreview();
-                }
-            });
-        } else {
+//        if (TextUtils.isEmpty(result.getText())) {
+//            mDecodeManager.showCouldNotReadQrCodeFromScanner(this, new DecodeManager.OnRefreshCameraListener() {
+//                @Override
+//                public void refresh() {
+//                    restartPreview();
+//                }
+//            });
+//        } else {
             Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(200L);
             if (switch1.isChecked()) {
@@ -236,7 +243,7 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
             } else {
                 phoneSucceed(result.getText(), result.getBitmap());
             }
-        }
+//        }
     }
 
     @Override
@@ -271,9 +278,10 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
     }
 
     @Override
-    public void onShutter() {}
+    public void onShutter() {
+    }
 
-    private void qrSucceed(String result){
+    private void qrSucceed(String result) {
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(R.string.notification)
                 .setMessage(result)
                 .setPositiveButton(R.string.positive_button_confirm, new DialogInterface.OnClickListener() {
@@ -292,27 +300,27 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
         });
     }
 
-    private void phoneSucceed(String result, Bitmap bitmap){
+    private void phoneSucceed(String result, Bitmap bitmap) {
         ImageDialog dialog = new ImageDialog(this);
         dialog.addBitmap(bitmap);
-        dialog.addTitle(TextUtils.isEmpty(result) ? "未识别到手机号码" : result);
+        dialog.addTitle(TextUtils.isEmpty(result) ? "无法识别到内容" : result);
         dialog.show();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 restartPreview();
+                bt.setEnabled(true);
             }
         });
     }
 
-    private Handler mHandler = new Handler(){
+    private Handler mHandler = new Handler() {
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            bt.setEnabled(true);
-            cancelProgressDialog();
-            switch (msg.what){
+//            cancelProgressDialog();
+            switch (msg.what) {
                 case 0:
                     phoneSucceed((String) msg.obj, bmp);
                     break;
@@ -336,7 +344,7 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
     }
 
     public void cancelProgressDialog() {
-        if (progressDialog != null){
+        if (progressDialog != null) {
             if (progressDialog.isShowing()) {
                 progressDialog.dismiss();
             }

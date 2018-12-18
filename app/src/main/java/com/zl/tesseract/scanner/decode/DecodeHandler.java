@@ -121,6 +121,9 @@ final class DecodeHandler extends Handler {
                 if(!TextUtils.isEmpty(result)){
                     rawResult = new Result(result, null, null, null);
                     rawResult.setBitmap(bitmap);
+                } else {
+                    rawResult = new Result("", null, null, null);
+                    rawResult.setBitmap(bitmap);
                 }
             }
 
@@ -133,7 +136,7 @@ final class DecodeHandler extends Handler {
             Message message = Message.obtain(mActivity.getCaptureActivityHandler(), R.id.decode_succeeded, rawResult);
             message.sendToTarget();
         } else {
-            Message message = Message.obtain(mActivity.getCaptureActivityHandler(), R.id.decode_failed);
+            Message message = Message.obtain(mActivity.getCaptureActivityHandler(), R.id.decode_failed, new Result("", null, null, null));
             message.sendToTarget();
         }
     }

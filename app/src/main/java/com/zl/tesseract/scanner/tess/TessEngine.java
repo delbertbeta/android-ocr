@@ -45,7 +45,7 @@ public class TessEngine {
         Log.d(TAG, "Confidence values: " + tessBaseAPI.meanConfidence());
         tessBaseAPI.end();
         System.gc();
-        return Tools.getTelNum(inspection);
+        return Tools.getRecognizedText(inspection);
     }
 
 }
