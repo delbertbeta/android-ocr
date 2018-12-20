@@ -11,6 +11,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         sAppContext = this;
-
     }
+
+    public static int batteryState = 1;
 }

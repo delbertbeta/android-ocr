@@ -3,12 +3,18 @@ package com.zl.tesseract.scanner;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +29,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.Result;
@@ -59,6 +66,21 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
     private ProgressDialog progressDialog;
     private Bitmap bmp;
 
+    private BroadcastReceiver mbatteryReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            int state = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
+            if (state == BatteryManager.BATTERY_STATUS_CHARGING || state == BatteryManager.BATTERY_STATUS_FULL) {
+                ((TextView) findViewById(R.id.battery)).setText("充电中，将在本地运算");
+                MyApplication.batteryState = 0;
+            } else {
+                ((TextView) findViewById(R.id.battery)).setText("未充电，将使用服务器运算");
+                MyApplication.batteryState = 1;
+            }
+        }
+
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -66,6 +88,7 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
         setContentView(R.layout.activity_scanner);
         initView();
         initData();
+        this.registerReceiver(mbatteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
 
     private void initView() {
@@ -146,6 +169,7 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
                 finish();
             }
         }
+        unregisterReceiver(mbatteryReceiver);
     }
 
     @Override
@@ -236,13 +260,13 @@ public class ScannerActivity extends Activity implements Callback, Camera.Pictur
 //                }
 //            });
 //        } else {
-            Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
-            vibrator.vibrate(200L);
-            if (switch1.isChecked()) {
-                qrSucceed(result.getText());
-            } else {
-                phoneSucceed(result.getText(), result.getBitmap());
-            }
+        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(200L);
+        if (switch1.isChecked()) {
+            qrSucceed(result.getText());
+        } else {
+            phoneSucceed(result.getText(), result.getBitmap());
+        }
 //        }
     }
 
